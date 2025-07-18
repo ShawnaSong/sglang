@@ -225,6 +225,7 @@ set(SOURCES
     "csrc/gemm/dsv3_router_gemm.cu"
     "csrc/gemm/fp8_blockwise_gemm_kernel.cu"
     "csrc/gemm/fp8_gemm_kernel.cu"
+    "csrc/gemm/fp8_to_fp4_kv_cache.cu"
     "csrc/gemm/int8_gemm_kernel.cu"
     "csrc/gemm/nvfp4_expert_quant.cu"
     "csrc/gemm/nvfp4_quant_entry.cu"

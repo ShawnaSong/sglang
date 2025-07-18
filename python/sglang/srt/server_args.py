@@ -188,6 +188,7 @@ class ServerArgs:
 
     # Optimization/debug options
     disable_radix_cache: bool = False
+    enable_fp8_fp4_attention: bool = False
     cuda_graph_max_bs: Optional[int] = None
     cuda_graph_bs: Optional[List[int]] = None
     disable_cuda_graph: bool = False
@@ -1415,6 +1416,11 @@ class ServerArgs:
             "--disable-radix-cache",
             action="store_true",
             help="Disable RadixAttention for prefix caching.",
+        )
+        parser.add_argument(
+            "--enable-fp8-fp4-attention",
+            action="store_true",
+            help="Enable fp8_fp4 attention for debugging purposes.",
         )
         parser.add_argument(
             "--cuda-graph-max-bs",

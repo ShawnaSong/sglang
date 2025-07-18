@@ -76,7 +76,7 @@ from sglang.srt.layers.quantization.fp8_utils import (
 from sglang.srt.layers.quantization.int8_utils import (
     block_dequant as int8_block_dequant,
 )
-from sglang.srt.layers.radix_attention import RadixAttention
+from sglang.srt.layers.radix_attention import RadixAttention, FP8FP4RadixAttention
 from sglang.srt.layers.rotary_embedding import get_rope, get_rope_wrapper
 from sglang.srt.layers.utils import is_sm100_supported
 from sglang.srt.layers.vocab_parallel_embedding import (
@@ -867,7 +867,13 @@ class DeepseekV2AttentionMLA(nn.Module):
         else:
             self.rotary_emb.forward = self.rotary_emb.forward_native
 
-        self.attn_mqa = RadixAttention(
+        # Check if FP8-FP4 attention is enabled
+        enable_fp8_fp4_attention = global_server_args_dict.get("enable_fp8_fp4_attention", False)
+        
+        # Choose attention class based on configuration
+        AttentionClass = FP8FP4RadixAttention if enable_fp8_fp4_attention else RadixAttention
+
+        self.attn_mqa = AttentionClass(
             self.num_local_heads,
             self.kv_lora_rank + self.qk_rope_head_dim,
             self.scaling,
@@ -878,7 +884,7 @@ class DeepseekV2AttentionMLA(nn.Module):
             prefix=add_prefix("attn_mqa", prefix),
         )
 
-        self.attn_mha = RadixAttention(
+        self.attn_mha = AttentionClass(
             self.num_local_heads,
             self.qk_nope_head_dim + self.qk_rope_head_dim,
             self.scaling,
