@@ -35,6 +35,15 @@ elseif ("${CUDA_VERSION}" VERSION_GREATER_EQUAL "11.8")
 endif()
 
 # Torch
+if(NOT TARGET CUDA::nvToolsExt)
+    if(NOT TARGET CUDA::nvtx3)
+        add_library(CUDA::nvtx3 INTERFACE IMPORTED)
+        target_include_directories(CUDA::nvtx3 SYSTEM INTERFACE ${CUDAToolkit_INCLUDE_DIRS})
+    endif()
+    add_library(CUDA::nvToolsExt INTERFACE IMPORTED)
+    target_compile_definitions(CUDA::nvToolsExt INTERFACE TORCH_CUDA_USE_NVTX3)
+    target_link_libraries(CUDA::nvToolsExt INTERFACE CUDA::nvtx3)
+endif()
 find_package(Torch REQUIRED)
 # clean Torch Flag
 clear_cuda_arches(CMAKE_FLAG)
@@ -148,7 +157,7 @@ set(SGL_KERNEL_CUDA_FLAGS
 
 option(SGL_KERNEL_ENABLE_SM100A           "Enable SM100A"           OFF)
 option(SGL_KERNEL_ENABLE_SM90A            "Enable SM90A"            OFF)
-option(SGL_KERNEL_ENABLE_BF16             "Enable BF16"             ON)
+option(SGL_KERNEL_ENABLE_BF16             "Enable BF16"             OFF)
 option(SGL_KERNEL_ENABLE_FP8              "Enable FP8"              ON)
 option(SGL_KERNEL_ENABLE_FP4              "Enable FP4"              OFF)
 option(SGL_KERNEL_ENABLE_FA3              "Enable FA3"              OFF)
@@ -303,7 +312,10 @@ endif()
 set(MSCCLPP_USE_CUDA ON)
 set(MSCCLPP_BYPASS_GPU_CHECK ON)
 set(MSCCLPP_BUILD_TESTS OFF)
-add_subdirectory(${repo-mscclpp_SOURCE_DIR})
+add_subdirectory(
+    ${repo-mscclpp_SOURCE_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}/_deps/repo-mscclpp-build
+)
 target_link_libraries(common_ops PRIVATE ${TORCH_LIBRARIES} c10 cuda cublas cublasLt mscclpp_static)
 
 target_compile_definitions(common_ops PRIVATE
